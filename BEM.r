@@ -19,30 +19,56 @@ stargazer(bw, type = "text", title = "Raw Data Summary Statistics")
 #-----------------------------------------------
 bw_na <- bw %>%
   replace_with_na(replace = list(
-    dob_tt = 9999, bfacil3 = 3, dmar = 3, mbstate_rec = 3,
-    meduc = 9, fagecomb = 99, fagerec11 = 11, feduc = 9,
-    priordead = 99, priorlive = 99, priorterm = 99,
-    lbo_rec = 9, tbo_rec = 9, illb_r = c(888, 999),
-    ilp_r = c(888, 999), precare = 99, previs = 99,
-    cig_0 = 99, cig_1 = 99, cig_2 = 99, cig_3 = 99,
-    m_ht_in = 99, bmi = 99.9, bmi_r = 9,
-    pwgt_r = 999, dwgt_r = 999,
-    rf_pdiab = 9, rf_gdiab = 9, rf_phype = 9,
-    rf_ghype = 9, rf_ehype = 9, rf_ppterm = 9,
-    no_risks = 9, dbwt = 9999, bwgt_5 = 9,
-    mm_aicu = 9, ab_nicu = 9
+    dob_tt      = 9999,
+    bfacil3     = 3,
+    dmar        = 3,
+    mbstate_rec = 3,
+    meduc       = 9,
+    fagecomb    = 99,
+    fagerec11   = 11,
+    feduc       = 9,
+    priordead   = 99,
+    priorlive   = 99,
+    priorterm   = 99,
+    lbo_rec     = 9,
+    tbo_rec     = 9,
+    illb_r      = c(888, 999),
+    ilp_r       = c(888, 999),
+    precare     = 99,
+    previs      = 99,
+    cig_0       = 99,
+    cig_1       = 99,
+    cig_2       = 99,
+    cig_3       = 99,
+    m_ht_in     = 99,
+    bmi         = 99.9,
+    bmi_r       = 9,
+    pwgt_r      = 999,
+    dwgt_r      = 999,
+    rf_pdiab    = 9,
+    rf_gdiab    = 9,
+    rf_phype    = 9,
+    rf_ghype    = 9,
+    rf_ehype    = 9,
+    rf_ppterm   = 9,
+    no_risks    = 9,
+    dbwt        = 9999,
+    bwgt_5      = 9,
+    mm_aicu     = 9,
+    ab_nicu     = 9
   ))
 
 # Remove leftover outliers manually
 bw_na <- bw_na %>%
   mutate(
     illb_r = replace(illb_r, which(illb_r > 300), NA),
-    ilp_r  = replace(ilp_r, which(ilp_r > 300), NA),
-    bmi    = replace(bmi, which(bmi > 70), NA)
+    ilp_r  = replace(ilp_r,  which(ilp_r  > 300), NA),
+    bmi    = replace(bmi,    which(bmi    > 70),  NA)
   )
 
 # Summary stats after cleaning
-stargazer(bw_na, type = "text", title = "Cleaned Data Summary Statistics (with NAs)")
+stargazer(bw_na, type = "text",
+          title = "Cleaned Data Summary Statistics (with NAs)")
 
 #-----------------------------------------------
 # Drop all NAs
@@ -50,20 +76,10 @@ stargazer(bw_na, type = "text", title = "Cleaned Data Summary Statistics (with N
 bw2 <- na.omit(bw_na)
 
 # Summary stats after dropping NAs
-stargazer(bw2, type = "text", title = "Edited Data Summary Statistics (NAs Removed)")
+stargazer(bw2, type = "text",
+          title = "Edited Data Summary Statistics (NAs Removed)")
 
-#-----------------------------------------------
-# Compare regression before/after cleaning
-#-----------------------------------------------
-eq_uned <- lm(dbwt ~ bmi, data = bw)
-eq_ed   <- lm(dbwt ~ bmi, data = bw2)
 
-stargazer(eq_uned, eq_ed, type = "text",
-          title = "Comparison: Regression of Birthweight on BMI",
-          dep.var.labels = "Birthweight (grams)",
-          column.labels = c("Unedited Data", "Edited Data"),
-          covariate.labels = "Mother's BMI",
-          no.space = TRUE)
 
 #-----------------------------------------------
 # Continue with analysis using bw2
@@ -71,11 +87,40 @@ stargazer(eq_uned, eq_ed, type = "text",
 # Additional key variables
 bw2$avg_cigs <- (bw2$cig_1 + bw2$cig_2 + bw2$cig_3) / 3
 bw2$log_bw   <- log(bw2$dbwt)
-bw2$bmi_sq   <- bw2$bmi^2
 
 # Drop rows with missing in regression vars
 bw2_clean <- na.omit(bw2[, c("log_bw", "avg_cigs", "rf_pdiab",
                              "rf_phype", "rf_ppterm", "sex", "bmi")])
+
+# Run OLS regression
+model <- lm(log_bw ~ avg_cigs + rf_pdiab + rf_phype +
+              rf_ppterm + sex + bmi,
+            data = bw2)
+
+#-----------------------------------------------
+# Table 2: Summary stats for regression variables
+#-----------------------------------------------
+bw2_clean_pretty <- bw2_clean %>%
+  rename(
+    "Avg cigarettes per day"     = avg_cigs,
+    "Pre-pregnancy diabetes"     = rf_pdiab,
+    "Pre-pregnancy hypertension" = rf_phype,
+    "Previous preterm birth"     = rf_ppterm,
+    "Infant's sex"               = sex,
+    "Mother's BMI"               = bmi,
+    "Log(Birthweight)"           = log_bw
+  )
+
+stargazer(bw2_clean_pretty, type = "text",
+          title        = "Summary Statistics for Regression Variables",
+          digits       = 3,
+          summary.stat = c("mean", "sd", "min", "max", "median", "n"))
+
+#-----------------------------------------------
+# Table 3: Example summary statistics with kableExtra
+#-----------------------------------------------
+# install.packages("knitr")
+# install.packages("kableExtra")
 
 # OLS regression
 model <- lm(log_bw ~ avg_cigs + rf_pdiab + rf_phype + rf_ppterm + sex + bmi,
@@ -93,30 +138,35 @@ stargazer(model, type = "text",
           omit.stat = c("f", "ser"),
           no.space = TRUE)
 
-# Summary stats for regression variables
-bw2_clean_pretty <- bw2_clean %>%
-  rename(
-    "Avg cigarettes per day"    = avg_cigs,
-    "Pre-pregnancy diabetes"    = rf_pdiab,
-    "Pre-pregnancy hypertension"= rf_phype,
-    "Previous preterm birth"    = rf_ppterm,
-    "Infant's sex"              = sex,
-    "Mother's BMI"              = bmi,
-    "Log(Birthweight)"          = log_bw
-  )
+#-----------------------------------------------
+# Table 4: RESET test
+#-----------------------------------------------
+library(lmtest)
+resettest(model)
 
-stargazer(bw2_clean_pretty, type = "text",
-          title = "Summary Statistics for Regression Variables",
-          digits = 3,
-          summary.stat = c("mean", "sd", "min", "max", "median", "n"))
+#-----------------------------------------------
+# Table 5: Joint hypothesis tests
+#-----------------------------------------------
+# install.packages("car")
+library(car)
 
-# RESET test
-reset_out <- resettest(model, power = 2:3, type = "fitted")
-reset_model <- lm(model$residuals ~ fitted(model) + I(fitted(model)^2) + I(fitted(model)^3))
+linearHypothesis(model, c("rf_pdiab = 0",
+                          "rf_phype = 0",
+                          "rf_ppterm = 0",
+                          "sex = 0",
+                          "bmi = 0"))
 
-stargazer(reset_model, type = "text",
-          title = "RESET Test Results",
-          dep.var.labels = "Residuals",
-          covariate.labels = c("Fitted Value", "Fitted^2", "Fitted^3"),
-          omit.stat = c("ser", "adj.rsq"),
-          no.space = TRUE)
+linearHypothesis(model, c("rf_pdiab = 0",
+                          "rf_phype = 0"))
+
+#-----------------------------------------------
+# Table 6: Variance inflation factors
+#-----------------------------------------------
+vif(model)
+
+#-----------------------------------------------
+# Table 7: Breusch–Pagan test
+#-----------------------------------------------
+bp_test <- bptest(model)
+print(bp_test)
+
