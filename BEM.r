@@ -5,6 +5,7 @@ library(tidyverse)
 library(naniar)
 library(stargazer)
 library(lmtest)
+library(dplyr)
 
 #-----------------------------------------------
 # Import raw data
