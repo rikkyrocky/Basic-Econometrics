@@ -157,7 +157,9 @@ linearHypothesis(model, c("rf_pdiab = 0",
 
 linearHypothesis(model, c("rf_pdiab = 0",
                           "rf_phype = 0"))
-linearHypothesis(model, c("avg_cigs = 0", "sex = 0", “bmi=0”))
+
+linearHypothesis(model, c("avg_cigs = 0", 
+                          "sex = 0", "bmi=0"))
 
 #-----------------------------------------------
 # Table 6: Variance inflation factors
