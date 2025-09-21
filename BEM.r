@@ -117,10 +117,8 @@ stargazer(bw2_clean_pretty, type = "text",
           summary.stat = c("mean", "sd", "min", "max", "median", "n"))
 
 #-----------------------------------------------
-# Table 3: Example summary statistics with kableExtra
+# Table 3: Example summary statistics
 #-----------------------------------------------
-# install.packages("knitr")
-# install.packages("kableExtra")
 
 # OLS regression
 model <- lm(log_bw ~ avg_cigs + rf_pdiab + rf_phype + rf_ppterm + sex + bmi,
@@ -169,4 +167,3 @@ vif(model)
 #-----------------------------------------------
 bp_test <- bptest(model)
 print(bp_test)
-
