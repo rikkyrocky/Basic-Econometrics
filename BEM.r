@@ -109,7 +109,7 @@ bw2_clean_pretty <- bw2_clean %>%
     "Previous preterm birth"     = rf_ppterm,
     "Infant's sex"               = sex,
     "Mother's BMI"               = bmi,
-    "Log(Birthweight)"           = log_bw
+    "Birthweight"           = dbwt
   )
 
 stargazer(bw2_clean_pretty, type = "text",
@@ -521,3 +521,44 @@ stargazer(ulmodel, ulmodel3, ulmodel5, ulmodel6,
           omit.stat = c("f", "ser"),
           no.space = TRUE,
           notes = "Robust SEs: HC1")
+
+# -----------------------------
+# Stargazer tables: LOG(Y) models with HC1 robust SEs and 95% CIs
+# -----------------------------
+stargazer(model, model3, model5, model6,
+          se = list(rob_se_base_HC1, rob_se_m3_HC1, rob_se_m5_HC1, rob_se_m6_HC1),
+          type = "text",
+          title = "OLS: Log(Birthweight) — HC1 Robust SEs with 95% Confidence Intervals",
+          dep.var.labels = "Log(Birthweight)",
+          omit.stat = c("f", "ser"),
+          no.space = TRUE,
+          ci = TRUE, ci.level = 0.95,
+          notes = "Robust SEs: HC1. 95% confidence intervals shown."
+)
+
+# -----------------------------
+# Stargazer tables: LEVEL(Y) models (dbwt) with HC1 robust SEs and 95% CIs
+# -----------------------------
+stargazer(ulmodel, ulmodel3, ulmodel5, ulmodel6,
+          se = list(rob_se_ulbase_HC1, rob_se_ul3_HC1, rob_se_ul5_HC1, rob_se_ul6_HC1),
+          type = "text",
+          title = "OLS: Birthweight (grams) — HC1 Robust SEs with 95% Confidence Intervals",
+          dep.var.labels = "Birthweight (grams)",
+          omit.stat = c("f", "ser"),
+          no.space = TRUE,
+          ci = TRUE, ci.level = 0.95,
+          notes = "Robust SEs: HC1. 95% confidence intervals shown."
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
